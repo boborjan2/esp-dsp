@@ -10,7 +10,9 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License. 
+// limitations under the License.
+
+#include "sdkconfig.h"
 
 #include "dsps_dotprod_platform.h"
 #if (dsps_dotprod_s16_ae32_enabled == 1)
@@ -24,7 +26,7 @@
 
 
 //esp_err_t dsps_dotprod_s16_ae32(const int16_t* src1, const int16_t* src2, int16_t* dest, int len, int8_t shift);
-dsps_dotprod_s16_ae32: 
+dsps_dotprod_s16_ae32:
 // src1 - a2
 // src2 - a3
 // dest - a4
@@ -36,27 +38,27 @@ dsps_dotprod_s16_ae32:
 	// Check minimum length
 	movi a8, 4
 	blt a5, a8, dsps_dotprod_s16_ae32_error
-	
+
 	// Clear accumulator
 	movi a8, 0
 	wsr a8, acchi
-		
+
 	// Prepare and load round value
 	movi a8, 0x7fff
 	ssr a6
 	srl a8, a8
 	wsr a8, acclo // initialize acc with shifted round value
 
-	// Compensate for pre-increment 
+	// Compensate for pre-increment
 	// Right shift to 16 bits
 	// RS = -shift + 15
-	neg  a6, a6 
+	neg  a6, a6
 	addi a6, a6, 15
-	
+
 	/* number of loop iterations (see below):
 	 * a7 = count / 4 - 1
 	 */
-	
+
 	srli a7, a5, 2
 	addi a7, a7, -1
 
@@ -69,7 +71,10 @@ dsps_dotprod_s16_ae32:
 	rsr a2, acchi
 	rsr a3, acclo
 	src a2, a2, a3
-		
+
+#ifdef CONFIG_DSP_SATURATION
+	clamps	a2,a2,15
+#endif
 	s16i	a2, a4, 0
 	movi.n	a2, 0
 	retw.n

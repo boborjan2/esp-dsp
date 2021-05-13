@@ -18,6 +18,13 @@ config DSP_OPTIMIZATION
    default 0 if DSP_ANSI
    default 1 if DSP_OPTIMIZED
 
+config DSP_SATURATION
+   bool "DSP Saturated Arithmetic"
+   default 0 if DSP_ANSI
+   default 1 if DSP_OPTIMIZED
+   help
+      Saturated arithmetic for selected optimized functions (fixed only)
+
 choice DSP_MAX_FFT_SIZE
    bool "Maximum FFT length"
    default DSP_MAX_FFT_SIZE_4096
