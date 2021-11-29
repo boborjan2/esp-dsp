@@ -10,7 +10,9 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License. 
+// limitations under the License.
+
+#include "sdkconfig.h"
 
 #include "dsps_add_platform.h"
 #if (dsps_add_s16_ae32_enabled == 1)
@@ -28,7 +30,7 @@
 //     }
 //     return ESP_OK;
 // }
-dsps_add_s16_ae32: 
+dsps_add_s16_ae32:
 // input1   - a2
 // input2   - a3
 // output   - a4
@@ -44,7 +46,7 @@ dsps_add_s16_ae32:
     // l32i.n	a10, a1, 16
     // s16i	a10, a4, 0
     // l32i.n	a10, a1, 20
-    // s16i	a10, a4, 2       
+    // s16i	a10, a4, 2
 
     l32i.n	a10, a1, 16     // Load step_out to the a10 register
     l32i.n	a9, a1,  20     // Load shift to the a9 register
@@ -62,7 +64,10 @@ dsps_add_s16_ae32:
     l16si   a11, a2, 0
     l16si   a8,  a3, 0
     add     a8, a11, a8
-    srl     a9, a8          // a8 = a8>>sar    
+    sra     a9, a8          // a8 = a8>>sar  //!!! aritmetic shift!
+#ifdef CONFIG_DSP_SATURATION
+	clamps	a9, a9, 15
+#endif
 
     loopnez a5, .loop_end_add_s16_ae32
         add.n   a2, a2, a6      // input1+=step_in1;
@@ -72,7 +77,10 @@ dsps_add_s16_ae32:
         l16si   a8,  a3, 0
         s16i	a9,  a4, 0      // store result to the putput
         add     a8, a11, a8
-    	srl     a9, a8          // a8 = a8>>sar    
+    	sra     a9, a8          // a8 = a8>>sar  //!!! aritmetic shift!
+#ifdef CONFIG_DSP_SATURATION
+	    clamps	a9, a9, 15
+#endif
 
         add.n   a4, a4, a10     // output+=step_out;
 .loop_end_add_s16_ae32:
