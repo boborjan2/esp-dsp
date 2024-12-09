@@ -39,6 +39,16 @@ dsps_dotprod_s16_ae32:
 	movi a8, 4
 	blt a5, a8, dsps_dotprod_s16_ae32_error
 
+
+#if 1
+	movi a8, 0x4000
+	movi a7, 1
+	ssl a6
+	sll a7, a7
+	// load accum with (1 << a6)*0x4000
+	mul.aa.ll a8,a7
+#else
+
 	// Clear accumulator
 	movi a8, 0
 	wsr a8, acchi
@@ -48,6 +58,7 @@ dsps_dotprod_s16_ae32:
 	ssr a6
 	srl a8, a8
 	wsr a8, acclo // initialize acc with shifted round value
+#endif
 
 	// Compensate for pre-increment
 	// Right shift to 16 bits
@@ -62,10 +73,15 @@ dsps_dotprod_s16_ae32:
 	srli a7, a5, 2
 	addi a7, a7, -1
 
-	movi.n	a10, 0 // load 0 to the a10 to increment second array
+	//movi.n	a10, 0 // load 0 to the a10 to increment second array
 
+	bbci  a3, 1, .evensrc2
+	bbsi  a2, 1, .evensrc2  // only supported if a2 is align(4)
+	dotprod_s16_ae32_full_oddx2 a2, a3, a7, a5
+	j .finish
+.evensrc2:
 	dotprod_s16_ae32_full a2, a3, a7, a5
-
+.finish:
 	/* Get accumulator */
 	ssr a6
 	rsr a2, acchi
